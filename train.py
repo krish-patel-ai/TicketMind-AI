@@ -38,7 +38,7 @@ wandb.init(
 
 # ── DATASET ────────────────────────────
 print("Loading Banking77 dataset...")
-dataset    = load_dataset("banking77")
+dataset    = load_dataset("PolyAI/banking77")
 train_data = dataset["train"]
 test_data  = dataset["test"]
 
