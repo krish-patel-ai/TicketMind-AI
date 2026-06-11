@@ -85,11 +85,11 @@ def predict(text, tokenizer, model, labels):
 # ── UI ─────────────────────────────────
 st.set_page_config(
     page_title="Support Ticket Classifier",
-    page_icon="🎫",
+    page_icon="",
     layout="centered"
 )
 
-st.title("🎫 Customer Support Ticket Classifier")
+st.title("Customer Support Ticket Classifier")
 st.markdown("Powered by fine-tuned DistilBERT on Banking77 dataset")
 st.markdown("---")
 
@@ -121,4 +121,4 @@ if st.button("Classify Ticket", type="primary"):
         st.warning("Please enter a ticket first.")
 
 st.markdown("---")
-st.caption("Fine-tuned DistilBERT | Banking77 | Built for AI Engineer Portfolio")
+st.caption("Fine-tuned DistilBERT | Banking77")
