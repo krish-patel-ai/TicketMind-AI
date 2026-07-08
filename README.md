@@ -14,7 +14,7 @@
 
 ## 🚀 Live Demo
 
-**[▶ Try it on Hugging Face Spaces](https://huggingface.co/spaces/Krishp1/banking77-classifier)**
+**[▶ Try it ](https://ticketmind-ai.streamlit.app)**
 
 ---
 
