@@ -70,12 +70,9 @@ Customer Support Query (text)
     └──────┬──────┘
            │
            ▼
-    ┌─────────────────────────────────┐
-    │         DistilBERT              │
-    │  6 Transformer Layers           │
-    │  ├── Layer 1-4 (frozen Phase 1) │
-    │  └── Layer 5-6 (unfrozen Phase 2│
-    └──────────────┬──────────────────┘
+    |            DistilBERT              |
+|   6 Transformer Layers             |
+|   (all layers fine-tuned)          |
                    │
                    ▼
           ┌────────────────┐
@@ -100,32 +97,27 @@ Customer Support Query (text)
 
 ---
 
-## 🧠 Two-Phase Training Strategy
+## 🔥 Training Strategy
 
-### Phase 1 — Freeze Base, Train Head (Epochs 1-3)
-```
-✅ Classification head trains freely
-❌ All 6 DistilBERT transformer layers frozen
-```
-Why: Prevents catastrophic forgetting. Head learns task structure before base adapts.
+**Full fine-tuning — all layers trainable from epoch 1**
 
-### Phase 2 — Unfreeze Last 2 Layers (Epochs 4-7)
-```
-✅ Classification head trains freely
-✅ Transformer layers 5-6 unfrozen (3x lower LR)
-❌ Transformer layers 1-4 still frozen
-```
-Why: Domain-specific adaptation without destroying pretrained knowledge.
+Unlike frozen-backbone approaches that only train a classification head, SupportSense fine-tunes the entire DistilBERT model end-to-end. With 10,003 labeled examples across 77 intent classes, the dataset is large enough to safely update all transformer layers without catastrophic forgetting — giving the model full capacity to adapt its internal representations to banking-specific language, not just learn a linear mapping on top of frozen general-purpose features.
 
 ```python
-# Phase 1 — freeze base
-for name, param in model.named_parameters():
-    if "classifier" not in name and "pre_classifier" not in name:
-        param.requires_grad = False
+optimizer = AdamW(model.parameters(), lr=2e-5, weight_decay=0.01)
 
-# Phase 2 — unfreeze last 2 layers at lower LR
-optimizer = AdamW(params, lr=2e-5 / 3)  # 3x lower
+total_steps = len(train_loader) * EPOCHS
+scheduler = get_linear_schedule_with_warmup(
+    optimizer,
+    num_warmup_steps=total_steps // 10,
+    num_training_steps=total_steps
+)
 ```
+
+- **Linear warmup (10% of steps)** — prevents large, destabilizing gradient updates early in training
+- **Linear decay** — gradually reduces LR as training progresses, for smoother convergence
+- **Gradient clipping (max norm 1.0)** — prevents exploding gradients during full-model backprop
+- **Best-F1 checkpointing** — model is only saved when validation weighted F1 improves, protecting against overfitting in later epochs
 
 ---
 
@@ -260,7 +252,8 @@ Custom loop gives full control — gradient accumulation timing, custom logging,
 
 ### Why dropout 0.2 over default 0.1?
 77 classes with similar intents (card_lost vs card_stolen vs card_blocked) means high risk of overfitting. Higher dropout forces the model to learn robust features rather than memorizing training patterns.
-
+### Why full fine-tuning over a frozen backbone?
+With 10,003 training examples, the dataset is large enough to fine-tune all 6 transformer layers without overfitting or catastrophic forgetting. Freezing layers is typically a strategy for small datasets or fast iteration — here, full fine-tuning gets the model closer to task-optimal performance since it can reshape its representations specifically for banking intent language, not just general English.
 ---
 
 ## 🛠️ Tech Stack
@@ -280,7 +273,7 @@ Banking77 Dataset   — PolyAI (10,003 samples, 77 classes)
 ## 📝 Resume Line
 
 > **SupportSense — Customer Support Ticket Classifier** | DistilBERT · PyTorch · HuggingFace · W&B · Streamlit
-> Fine-tuned DistilBERT on Banking77 (10,003 samples, 77 classes) using custom PyTorch training loop — 90%+ accuracy, 0.89 F1. Two-phase layer freezing strategy with dropout regularization, gradient clipping, and W&B experiment tracking. Deployed on HuggingFace Spaces.
+>> Fine-tuned DistilBERT on Banking77 (10,003 samples, 77 classes) using a custom PyTorch training loop — 90%+ accuracy, 0.89 weighted F1. Full end-to-end fine-tuning with linear warmup/decay scheduling, gradient clipping, and W&B experiment tracking. Deployed on HuggingFace Spaces.
 
 ---
 
