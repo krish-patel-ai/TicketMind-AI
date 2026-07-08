@@ -70,9 +70,11 @@ Customer Support Query (text)
     └──────┬──────┘
            │
            ▼
-    |            DistilBERT              |
-|   6 Transformer Layers             |
-|   (all layers fine-tuned)          |
+    |------------------------------|
+    |         DistilBERT           |
+    |    6 Transformer Layers      |
+    |    (all layers fine-tuned)   |
+    |------------------------------|
                    │
                    ▼
           ┌────────────────┐
