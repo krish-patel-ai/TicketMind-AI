@@ -1,4 +1,4 @@
-# 🎫 SupportSense — AI-Powered Customer Support Ticket Classifier
+#  SupportSense — AI-Powered Customer Support Ticket Classifier
 
 > **A production-grade transformer pipeline that automatically classifies customer support tickets into 77 banking intent categories — fine-tuned DistilBERT with custom PyTorch training loop, W&B experiment tracking, and deployed on HuggingFace Spaces.**
 
